@@ -1,0 +1,162 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+struct Player {
+    vector<int> hand;
+    bool alive = true;
+};
+
+int main() {
+    srand(time(0)); // 設定隨機種子
+
+    vector<string> playerNames = {"你", "AI-Bob", "AI-Charlie", "AI-Diana"};
+    vector<int> deck;
+    
+    // 初始化牌堆 (1~13 各 4 張)
+    for (int i = 1; i <= 13; ++i)
+        for (int j = 0; j < 4; ++j)
+            deck.push_back(i);
+    random_shuffle(deck.begin(), deck.end());
+
+    // 初始化玩家與手牌
+    vector<Player> players(4);
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 5; ++j)
+            players[i].hand.push_back(deck.back()), deck.pop_back();
+
+    int total = 0, turn = 0, direction = 1;
+
+    while (true) {
+        if (!players[turn].alive) {
+            turn = (turn + direction + 4) % 4;
+            continue;
+        }
+
+        // 勝利條件
+        int aliveCount = 0, winner = -1;
+        for (int i = 0; i < 4; ++i)
+            if (players[i].alive) aliveCount++, winner = i;
+        if (aliveCount == 1) {
+            cout << "\n🎉 恭喜 " << playerNames[winner] << " 獲勝！" << endl;
+            break;
+        }
+
+        cout << "\n==============================" << endl;
+        cout << "總分: " << total << "（" << ((total > 0 && total <= 99) ? "有效" : "無效") << "）"
+             << "｜剩餘牌數: " << deck.size() << endl;
+
+        // 顯示玩家狀態
+        cout << "\n玩家狀態：" << endl;
+        for (int i = 0; i < 4; ++i)
+            cout << " - " << playerNames[i] << ": " << (players[i].alive ? "✅" : "❌") << endl;
+
+        Player &p = players[turn];
+
+        if (turn == 0) {
+            // 人類玩家操作
+            cout << "\n🎴 你的手牌：" << endl;
+            for (int i = 0; i < p.hand.size(); ++i)
+                cout << "[" << i << "] " << p.hand[i] << "  ";
+            cout << "\n👉 請輸入要出的牌索引：";
+            int c;
+            cin >> c;
+
+            if (c < 0 || c >= p.hand.size()) {
+                cout << "❌ 輸入錯誤，請重新輸入！" << endl;
+                continue;
+            }
+
+            int card = p.hand[c];
+            cout << "🃏 你出了 " << card << " 點" << endl;
+
+            // 特殊卡牌處理
+            if (card == 1) total = 0;
+            else if (card == 4) direction *= -1;
+            else if (card == 5) {
+                cout << "🎯 請選擇下一位玩家出牌：" << endl;
+                for (int i = 0; i < 4; ++i)
+                    if (players[i].alive)
+                        cout << "[" << i << "] " << playerNames[i] << "  ";
+                cout << "\n👉 輸入編號：";
+                int t; cin >> t;
+                p.hand.erase(p.hand.begin() + c);
+                if (!deck.empty()) p.hand.push_back(deck.back()), deck.pop_back();
+                if (t == 0) continue;
+                else { turn = t; continue; }
+            }
+            else if (card == 10 || card == 12) {
+                cout << "➕ 請選擇加(1)或減(0)：";
+                int op; cin >> op;
+                total += (op == 1 ? (card == 10 ? 10 : 20) : (card == 10 ? -10 : -20));
+            }
+            else if (card == 13) total = 99;
+            else total += card;
+
+            // 出牌後移除並補牌
+            p.hand.erase(p.hand.begin() + c);
+            if (!deck.empty()) p.hand.push_back(deck.back()), deck.pop_back();
+        } else {
+            // AI 自動出牌
+            int c = 0;
+            for (int i = 0; i < p.hand.size(); ++i) {
+                int card = p.hand[i];
+                int temp = total;
+                if (card == 1) temp = 0;
+                else if (card == 10 || card == 12) {
+                    if (total + (card == 10 ? 10 : 20) <= 99)
+                        temp += (card == 10 ? 10 : 20);
+                    else
+                        temp += (card == 10 ? -10 : -20);
+                }
+                else if (card == 13) temp = 99;
+                else temp += card;
+
+                if (temp <= 99) {
+                    c = i;
+                    break;
+                }
+            }
+
+            int card = p.hand[c];
+            cout << "🤖 " << playerNames[turn] << " 出了 " << card << " 點" << endl;
+
+            if (card == 1) total = 0;
+            else if (card == 4) direction *= -1;
+            else if (card == 5) {
+                for (int i = 1; i < 4; ++i) {
+                    if (players[i].alive && i != turn) { turn = i; break; }
+                }
+                p.hand.erase(p.hand.begin() + c);
+                if (!deck.empty()) p.hand.push_back(deck.back()), deck.pop_back();
+                continue;
+            }
+            else if (card == 10 || card == 12) {
+                if (total + (card == 10 ? 10 : 20) <= 99)
+                    total += (card == 10 ? 10 : 20);
+                else
+                    total += (card == 10 ? -10 : -20);
+            }
+            else if (card == 13) total = 99;
+            else total += card;
+
+            p.hand.erase(p.hand.begin() + c);
+            if (!deck.empty()) p.hand.push_back(deck.back()), deck.pop_back();
+        }
+
+        // 爆點檢查
+        if (total > 99) {
+            cout << "💥 " << playerNames[turn] << " 爆點！淘汰出局！" << endl;
+            players[turn].alive = false;
+        }
+
+        // 換下一位玩家
+        turn = (turn + direction + 4) % 4;
+    }
+
+    return 0;
+}
