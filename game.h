@@ -1,20 +1,15 @@
-#ifndef PLAYER_H
-#define PLAYER_H
-#include<string>
-#include<vector>
-#include"Deck.h"
-using namespace std;
+#include "Deck.h"
+#include "player.h"
 
-class player
-{
+class Game {
+private:
+    Deck deck;
+    player p1, p2;
+    int total;
+    int currentPlayer; 
+
 public:
-	vector<card> hand;
-	string name;
-
-	player(const string& n);
-	void draw(Deck& deck);
-	void showHand()const;
-	card play(int index);
-	
+    Game();
+    void start();
+    int getCardValue(const card& card);
 };
-#endif 
