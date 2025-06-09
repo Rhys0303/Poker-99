@@ -1,30 +1,51 @@
-#include"player.h"
-#include<iostream>
+#include "Game.h"
+#include <iostream>
 using namespace std;
 
-player::player(const string&n) :name(n) {};
-
-
-void player::draw(Deck& deck)
-{
-	if (!deck.cards.empty())
-	{
-		hand.push_back(deck.draw());
-	}
+Game::Game() : p1("玩家1"), p2("玩家2"), total(0), currentPlayer(1) {
+    for (int i = 0; i < 3; ++i) {
+        p1.draw(deck);
+        p2.draw(deck);
+    }
 }
-void player::showHand()const
-{
-	cout << name << "的牌" << endl;
-	for (size_t i = 0; i < hand.size(); i++)
-	{
-		cout << "[" << i + 1 << ":";
-		hand[i].print();
-		cout << "]";
-	}
-	cout << endl;
+
+void Game::start() {
+    while (true) {
+        player& player = (currentPlayer == 1) ? p1 : p2;
+        cout << "-----------------------------------\n";
+        cout << "目前總數：" << total << std::endl;
+        player.showHand();
+
+        cout << player.name << " 請選擇要出的牌 (輸入編號 1~" << player.hand.size() << "): ";
+        int choice;
+        cin >> choice;
+        while (choice < 1 || choice > static_cast<int>(player.hand.size())) {
+            cout << "無效輸入，請重新選擇: ";
+            std::cin >> choice;
+        }
+
+        card played = player.play(choice - 1);
+        cout << player.name << " 出了：";
+        played.print();
+        cout << std::endl;
+
+        int addValue = getCardValue(played);
+        total += addValue;
+
+        cout << "目前總數：" << total << std::endl;
+
+        if (total > 99) {
+            cout << player.name << " 爆了！遊戲結束！" << std::endl;
+            break;
+        }
+
+        player.draw(deck);
+        currentPlayer = (currentPlayer == 1) ? 2 : 1;
+    }
 }
-card player::play(int index) {
-	card c = hand[index];
-	hand.erase(hand.begin() + index);
-	return c;
+
+int Game::getCardValue(const card& card) {
+    if (card.value == 10) return -10;
+    else if (card.value == 13) return (99 - total); 
+    else return card.value;
 }
