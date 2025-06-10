@@ -3,9 +3,7 @@
 #include <cstdlib>
 using namespace std;
 
-void Game::clearScreen() {
-    system("clear");
-}
+
 Game::Game() : p1("玩家1"), p2("玩家2"), total(0), currentPlayer(1) {
     for (int i = 0; i < 5; ++i) {
         p1.draw(deck);
@@ -18,7 +16,7 @@ void Game::start() {
         if (total < 0) {
             total=0;
         }
-        clearScreen();
+       
         player& player = (currentPlayer == 1) ? p1 : p2;
         cout << "-----------------------------------\n";
         cout << "目前總數：" << total << std::endl;
@@ -29,13 +27,13 @@ void Game::start() {
         cin >> choice;
         while (choice < 1 || choice > static_cast<int>(player.hand.size())) {
             cout << "無效輸入，請重新選擇: ";
-            std::cin >> choice;
+            cin >> choice;
         }
 
         card played = player.play(choice - 1);
         cout << player.name << " 出了：";
         played.print();
-        cout << std::endl;
+        cout << endl;
 
         int addValue = getCardValue(played);
         total += addValue;
@@ -43,7 +41,7 @@ void Game::start() {
         cout << "目前總數：" << total << std::endl;
         
         if (total > 99) {
-            cout << player.name << " 爆了！遊戲結束！" << std::endl;
+            cout << player.name << " 爆了！遊戲結束！" << endl;
             break;
         }
 
