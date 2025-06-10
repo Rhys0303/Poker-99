@@ -18,6 +18,7 @@
                                 K：不論目前數字多少，立刻加到99
                                 黑桃A：可以將現有數字歸零(有些玩法有此規則)
 5.若是手牌上沒有任何一張牌可出的情況下，就爆掉了，即是 輸了
-  執行頁面面![image](https://github.com/user-attachments/assets/050fe744-8de3-43d4-a890-b2379b530d46)
+
+   執行頁面面![image](https://github.com/user-attachments/assets/050fe744-8de3-43d4-a890-b2379b530d46)
 
 
